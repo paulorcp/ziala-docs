@@ -1,9 +1,17 @@
 ---
 title: 'Histórico de mudanças'
+description: 'Mudanças na API de dados, da mais recente para a mais antiga.'
 ---
 
-## v1
+<Update label="11 de outubro de 2026" description="v1">
+  - Respostas de erro ganham o atributo `detail` com a explicação da ocorrência. O
+    `title` passa a ser fixo por status.
+  - A referência passa a descrever cada atributo, os parâmetros, os cabeçalhos de limite
+    e os erros de cada endpoint.
+</Update>
 
-Primeira versão: `me`, `contacts`, `contact_fields`, `conversations`, `stage_events`,
-`pipeline_stages`, `fields` e `deletions`, com marca d'água (`sync_watermark`), recuo de
-5 minutos e janela de assentamento de 2 minutos.
+<Update label="10 de outubro de 2026" description="v1">
+  Lançamento da v1, com os endpoints `me`, `contacts`, `contacts/{id}`, `contact_fields`,
+  `conversations`, `stage_events`, `pipeline_stages`, `fields` e `deletions`, paginação
+  por cursor e sincronização incremental com marca d'água.
+</Update>

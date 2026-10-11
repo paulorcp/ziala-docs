@@ -1,0 +1,57 @@
+---
+title: 'Paginação'
+description: 'Listas paginadas por cursor, em ordem estável.'
+---
+
+Todos os endpoints de lista usam paginação por cursor e respondem no mesmo formato:
+
+```json
+{
+  "data": [
+    { "id": "3f6c2a9e-…", "updated_at": "2026-10-13T14:31:02.000Z" }
+  ],
+  "next_cursor": "eyJ0Ijoi…",
+  "has_more": true,
+  "sync_watermark": "2026-10-13T14:29:00.000Z"
+}
+```
+
+| Atributo | Descrição |
+| --- | --- |
+| `data` | Registros da página. |
+| `next_cursor` | Cursor da próxima página. `null` na última. |
+| `has_more` | `true` se há mais páginas. |
+| `sync_watermark` | Instante até o qual a leitura está completa. Veja [Sincronização incremental](/conceitos/sincronizacao-incremental). |
+
+## Parâmetros
+
+<ParamField query="limit" type="integer" default="100">
+  Itens por página, de 1 a 200.
+</ParamField>
+
+<ParamField query="cursor" type="string">
+  Valor de `next_cursor` da página anterior. Omita na primeira página.
+</ParamField>
+
+## Comportamento
+
+- A ordem é fixa: pela coluna de data do endpoint e, em caso de empate, pelo `id`, em
+  ordem crescente. Parâmetros de ordenação são ignorados.
+- O cursor é opaco e carrega a posição da leitura. Envie os mesmos filtros em todas as
+  páginas. Um cursor alterado, inválido ou emitido para outra conta recebe `400`.
+- Cada resposta tem no máximo 2 MB. Se a página atingir esse tamanho, ela vem com menos
+  itens que o `limit`, e o cursor continua do ponto exato.
+- Repetir uma requisição com o mesmo cursor é seguro. Use isso para tentar de novo após
+  `429` ou `503`.
+
+## Exemplo
+
+```python
+params = {"limit": 200}
+while True:
+    page = get("/v1/contacts", params)
+    save(page["data"])
+    if not page["has_more"]:
+        break
+    params["cursor"] = page["next_cursor"]
+```

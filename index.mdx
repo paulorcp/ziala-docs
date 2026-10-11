@@ -1,42 +1,35 @@
 ---
 title: 'API de dados'
-description: 'Leve os dados da sua conta para o seu painel ou plataforma de dados.'
+sidebarTitle: 'Introdução'
+description: 'Acesso somente leitura aos dados da sua conta na Ziala, para BI, data warehouse e plataformas de dados.'
 ---
 
-A API de dados entrega, só para leitura, os dados da sua conta na Ziala: contatos,
-campos dos contatos, conversas (com a origem do anúncio e o tempo da primeira
-resposta), mudanças de etapa e exclusões. É o caminho para montar painéis no Power BI,
-no Looker ou na sua plataforma de dados, sem pedir nada à equipe da Ziala.
+A API de dados expõe os contatos, os campos personalizados, as conversas, o histórico de
+etapas e as exclusões da sua conta. Ela foi desenhada para sincronização: paginação por
+cursor, leitura incremental e um endpoint de exclusões para manter a sua cópia fiel.
 
-## Como começar
+<Note>Disponível nos planos Pro e Enterprise. A API é somente leitura.</Note>
 
-1. **Ligue a API de dados** em Integrações, no painel da Ziala (só administradores).
-2. **Crie uma chave** na mesma tela. Ela aparece uma única vez: copie e guarde no
-   sistema que vai ler os dados.
-3. **Faça a primeira chamada:**
+## URL base
 
-```bash
-curl https://api.ziala.com.br/v1/me \
-  -H "Authorization: Bearer $ZIALA_API_KEY"
+```
+https://api.ziala.com.br/v1
 ```
 
-A resposta traz o nome da conta e os limites do seu plano.
+Todas as requisições usam HTTPS, recebem a chave no cabeçalho `Authorization` e respondem
+em JSON.
 
-## O que você encontra aqui
-
-| Página                                          | Para quê                                              |
-| ----------------------------------------------- | ----------------------------------------------------- |
-| [Autenticação](/autenticacao)                   | Como a chave funciona, quantas criar, como revogar    |
-| [Objetos](/objetos)                             | O que cada endpoint devolve, campo por campo          |
-| [Paginação e atraso](/paginacao-e-atraso)       | Como percorrer as páginas e buscar só o que mudou     |
-| [Receitas](/receitas-incrementais)              | O jeito certo para cada tipo de ferramenta            |
-| [Exclusões e LGPD](/exclusoes-e-lgpd)           | Como apagar da sua cópia o que foi apagado na Ziala   |
-| [Limites](/limites), [Erros](/erros)            | Quanto pode chamar e o que fazer quando algo falha    |
-
-A referência completa, gerada do próprio código, fica em
-[`/v1/openapi.json`](https://api.ziala.com.br/v1/openapi.json).
-
-<Note>
-  A API está disponível nos planos Pro e Enterprise. Nada do que ela faz altera dados na
-  Ziala.
-</Note>
+<CardGroup cols={2}>
+  <Card title="Início rápido" icon="rocket" href="/inicio-rapido">
+    Crie uma chave e faça a primeira requisição.
+  </Card>
+  <Card title="Sincronização incremental" icon="arrows-rotate" href="/conceitos/sincronizacao-incremental">
+    Busque só o que mudou desde a última leitura, sem perder registros.
+  </Card>
+  <Card title="Guias de integração" icon="plug" href="/guias/plataformas-de-dados">
+    Plataformas de dados, Airbyte, Power BI e data warehouses.
+  </Card>
+  <Card title="Referência da API" icon="code" href="/api-reference/introducao">
+    Endpoints, parâmetros e o significado de cada campo.
+  </Card>
+</CardGroup>

@@ -1,0 +1,82 @@
+---
+title: 'Código próprio'
+description: 'Requisições diretas e um script de sincronização de referência.'
+---
+
+## Requisições básicas
+
+<CodeGroup>
+
+```bash curl
+# Primeira página
+curl "https://api.ziala.com.br/v1/contacts?limit=200" \
+  -H "Authorization: Bearer $ZIALA_API_KEY"
+
+# Próxima página
+curl "https://api.ziala.com.br/v1/contacts?limit=200&cursor=eyJ0Ijoi..." \
+  -H "Authorization: Bearer $ZIALA_API_KEY"
+
+# Só o que mudou desde a última marca d'água
+curl "https://api.ziala.com.br/v1/contacts?updated_since=2026-10-13T14:29:00Z" \
+  -H "Authorization: Bearer $ZIALA_API_KEY"
+```
+
+```python Python
+# Requisitos: pip install requests. Trate 429 e 503 como em /conceitos/erros.
+import os
+import requests
+
+BASE = "https://api.ziala.com.br/v1"
+HEADERS = {"Authorization": f"Bearer {os.environ['ZIALA_API_KEY']}"}
+
+params = {"limit": 200}
+while True:
+    page = requests.get(f"{BASE}/contacts", headers=HEADERS, params=params, timeout=60)
+    page.raise_for_status()
+    body = page.json()
+    for contact in body["data"]:
+        print(contact["id"], contact["name"])
+    if not body["has_more"]:
+        break
+    params["cursor"] = body["next_cursor"]
+```
+
+```javascript Node.js
+// Node.js 18 ou superior, em módulo ES (arquivo .mjs).
+const BASE = 'https://api.ziala.com.br/v1';
+const headers = { Authorization: `Bearer ${process.env.ZIALA_API_KEY}` };
+
+let cursor = null;
+do {
+  const params = new URLSearchParams({ limit: '200' });
+  if (cursor) params.set('cursor', cursor);
+  const res = await fetch(`${BASE}/contacts?${params}`, { headers });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const body = await res.json();
+  for (const contact of body.data) console.log(contact.id, contact.name);
+  cursor = body.has_more ? body.next_cursor : null;
+} while (cursor);
+```
+
+</CodeGroup>
+
+## Script de referência
+
+O script [`sincronizar.py`](https://github.com/paulorcp/ziala-docs/blob/main/exemplos/sincronizar.py)
+implementa a [sincronização incremental](/conceitos/sincronizacao-incremental) de um
+endpoint, usando só a biblioteca padrão do Python 3.9 ou superior:
+
+- guarda o `sync_watermark` entre execuções e o envia em `updated_since`;
+- percorre todas as páginas pelo cursor;
+- repete `429`, `500`, `503` e falhas de rede, respeitando o `Retry-After`;
+- grava os registros pela chave primária, sem duplicar.
+
+```bash
+export ZIALA_API_KEY=zk_live_...
+python sincronizar.py contacts
+```
+
+Ele grava `contacts.json` com os registros e `contacts.estado.json` com a marca d'água.
+O script não aplica exclusões: na sua implementação, leia também `deletions` e remova os
+registros correspondentes, como descrito em [Exclusões](/conceitos/exclusoes). Use-o como
+ponto de partida e troque a gravação em arquivo pelo seu banco de dados.

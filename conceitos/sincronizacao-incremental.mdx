@@ -1,0 +1,67 @@
+---
+title: 'Sincronização incremental'
+description: 'Leia só o que mudou desde a última execução, sem perder nem duplicar registros.'
+---
+
+Depois da primeira carga completa, cada execução pode pedir só os registros criados ou
+alterados desde a anterior. A entrega é **pelo menos uma vez**: nenhuma alteração se
+perde, e alguns registros podem vir repetidos. A única exceção são as métricas de
+conversa, descritas em [Limitações conhecidas](/conceitos/modelo-de-dados#limitações-conhecidas). Por isso, grave sempre pela chave primária
+(upsert): `id` em todos os objetos, e `contact_id` + `field_key` em `/v1/contact_fields`.
+
+## Parâmetro
+
+<ParamField query="updated_since" type="string">
+  Retorna registros alterados a partir deste instante. Aceita data e hora ISO 8601 com
+  fuso (`2026-10-13T14:29:00Z`) ou só a data (`2026-10-13`, lida como meia-noite UTC).
+  Vale em todos os endpoints incrementais. Em `/v1/stage_events` e `/v1/deletions` também
+  são aceitos os sinônimos `created_since` e `deleted_since`.
+</ParamField>
+
+## Garantias
+
+| Mecanismo | O que faz |
+| --- | --- |
+| Janela de estabilização | Registros alterados nos últimos 2 minutos ficam para a leitura seguinte. Assim, uma transação ainda em andamento nunca é pulada. |
+| Marca d'água | Toda resposta traz `sync_watermark`, o instante até o qual a leitura está completa. O valor é o mesmo em todas as páginas da leitura. |
+| Recuo de 5 minutos | A busca começa 5 minutos antes do `updated_since` informado, para cobrir diferenças de relógio. Registros dessa faixa podem vir repetidos. |
+
+## Fluxo recomendado
+
+<Steps>
+  <Step title="Primeira execução">
+    Leia todas as páginas sem `updated_since` e grave pela chave primária.
+  </Step>
+  <Step title="Guarde a marca d'água">
+    Ao terminar a última página, guarde o `sync_watermark` dela. Guarde só depois de
+    gravar os dados: se a execução falhar no meio, a próxima recomeça do ponto anterior.
+  </Step>
+  <Step title="Próximas execuções">
+    Envie a marca d'água guardada em `updated_since`, percorra todas as páginas e grave
+    pela chave primária.
+  </Step>
+  <Step title="Exclusões">
+    Leia [`/v1/deletions`](/conceitos/exclusoes) com a mesma lógica e remova da sua cópia
+    os registros apagados.
+  </Step>
+</Steps>
+
+<Warning>
+  Não use o relógio da sua máquina como ponto de partida. Use o `sync_watermark`. Se a
+  sua ferramenta só consegue guardar o maior `updated_at` recebido, ele também é seguro,
+  porque a busca recua 5 minutos.
+</Warning>
+
+## Ferramentas que não guardam estado
+
+Algumas plataformas de dados não guardam valores entre execuções, só a data da última
+execução. Nesse caso, use uma **janela móvel**: envie sempre `updated_since` com a data
+de dois dias atrás (`AAAA-MM-DD`) e grave pela chave primária. Cada execução relê os dois últimos
+dias, e o upsert absorve as repetições. Veja
+[Plataformas de dados](/guias/plataformas-de-dados).
+
+## Reconciliação periódica
+
+Recomendamos uma carga completa semanal, além das incrementais. Ela corrige divergências
+que a leitura incremental não cobre, como uma exclusão mais antiga que os 90 dias de
+retenção de `/v1/deletions`.

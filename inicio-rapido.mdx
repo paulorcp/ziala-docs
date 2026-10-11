@@ -1,0 +1,47 @@
+---
+title: 'Início rápido'
+description: 'Da chave à primeira página de contatos em poucos minutos.'
+---
+
+<Steps>
+  <Step title="Ative a API de dados">
+    No painel da Ziala, abra **Integrações > API de dados** e clique em **Ligar a API de dados**. Só
+    administradores da conta veem essa opção.
+  </Step>
+  <Step title="Crie uma chave">
+    Na mesma tela, clique em **Criar chave** e dê um nome que identifique o sistema que vai
+    usá-la. A chave é exibida uma única vez: guarde-a no gerenciador de segredos desse
+    sistema.
+  </Step>
+  <Step title="Teste a chave">
+    ```bash
+    curl https://api.ziala.com.br/v1/me \
+      -H "Authorization: Bearer $ZIALA_API_KEY"
+    ```
+
+    ```json
+    {
+      "account_name": "Exemplo Ltda",
+      "scopes": ["data:read"],
+      "limits": { "per_minute": 60, "per_day": 10000 }
+    }
+    ```
+  </Step>
+  <Step title="Liste os contatos">
+    ```bash
+    curl "https://api.ziala.com.br/v1/contacts?limit=200" \
+      -H "Authorization: Bearer $ZIALA_API_KEY"
+    ```
+
+    Para as próximas páginas, envie o `next_cursor` da resposta no parâmetro `cursor`.
+    Veja [Paginação](/conceitos/paginacao).
+  </Step>
+</Steps>
+
+## Próximos passos
+
+- [Sincronização incremental](/conceitos/sincronizacao-incremental): como ler só o que
+  mudou desde a última execução.
+- [Exclusões](/conceitos/exclusoes): como remover da sua cópia o que foi apagado na Ziala.
+- [Guias de integração](/guias/plataformas-de-dados): configuração pronta para as
+  ferramentas mais usadas.

@@ -22,47 +22,55 @@
         "language": "pt-BR",
         "tabs": [
           {
-            "tab": "Guia",
+            "tab": "Documentação",
             "groups": [
               {
-                "group": "Começo",
+                "group": "Começar",
                 "pages": [
                   "index",
-                  "autenticacao",
-                  "objetos"
+                  "inicio-rapido",
+                  "autenticacao"
                 ]
               },
               {
-                "group": "Buscar só o que mudou",
+                "group": "Conceitos",
                 "pages": [
-                  "paginacao-e-atraso",
-                  "receitas-incrementais",
-                  "exclusoes-e-lgpd"
+                  "conceitos/modelo-de-dados",
+                  "conceitos/paginacao",
+                  "conceitos/sincronizacao-incremental",
+                  "conceitos/exclusoes",
+                  "conceitos/limites",
+                  "conceitos/erros",
+                  "conceitos/versionamento"
                 ]
               },
               {
-                "group": "Regras",
+                "group": "Guias de integração",
                 "pages": [
-                  "limites",
-                  "erros",
-                  "versionamento",
-                  "changelog"
-                ]
-              },
-              {
-                "group": "Guias",
-                "pages": [
-                  "guias/rest-curl",
-                  "guias/plataforma-de-dados",
+                  "guias/plataformas-de-dados",
                   "guias/airbyte",
-                  "guias/power-bi"
+                  "guias/power-bi",
+                  "guias/data-warehouse",
+                  "guias/codigo-proprio"
+                ]
+              },
+              {
+                "group": "Recursos",
+                "pages": [
+                  "changelog"
                 ]
               }
             ]
           },
           {
-            "tab": "Referência",
+            "tab": "Referência da API",
             "groups": [
+              {
+                "group": "Visão geral",
+                "pages": [
+                  "api-reference/introducao"
+                ]
+              },
               {
                 "group": "Endpoints",
                 "openapi": "https://api.ziala.com.br/v1/openapi.json"
@@ -76,6 +84,13 @@
   "api": {
     "playground": {
       "display": "interactive"
+    },
+    "examples": {
+      "languages": [
+        "curl",
+        "python",
+        "javascript"
+      ]
     }
   },
   "navbar": {
@@ -93,5 +108,43 @@
       "chatgpt",
       "claude"
     ]
-  }
+  },
+  "redirects": [
+    {
+      "source": "/paginacao-e-atraso",
+      "destination": "/conceitos/paginacao"
+    },
+    {
+      "source": "/receitas-incrementais",
+      "destination": "/conceitos/sincronizacao-incremental"
+    },
+    {
+      "source": "/exclusoes-e-lgpd",
+      "destination": "/conceitos/exclusoes"
+    },
+    {
+      "source": "/limites",
+      "destination": "/conceitos/limites"
+    },
+    {
+      "source": "/erros",
+      "destination": "/conceitos/erros"
+    },
+    {
+      "source": "/versionamento",
+      "destination": "/conceitos/versionamento"
+    },
+    {
+      "source": "/objetos",
+      "destination": "/conceitos/modelo-de-dados"
+    },
+    {
+      "source": "/guias/rest-curl",
+      "destination": "/guias/codigo-proprio"
+    },
+    {
+      "source": "/guias/plataforma-de-dados",
+      "destination": "/guias/plataformas-de-dados"
+    }
+  ]
 }

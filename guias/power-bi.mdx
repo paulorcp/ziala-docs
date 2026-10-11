@@ -1,38 +1,71 @@
 ---
 title: 'Power BI'
-description: 'Ler a API de dados no Power Query, com paginação.'
+description: 'Leitura paginada no Power Query, com tratamento de limites.'
 ---
 
-No Power BI Desktop, **Obter dados > Consulta em branco > Editor avançado**, e cole (troque
-`contacts` pelo endpoint que quiser):
+## Consulta
 
-```
+No Power BI Desktop, abra **Obter dados > Consulta em branco > Editor avançado** e cole
+a consulta abaixo. Ela percorre todas as páginas de um endpoint e, ao receber `429` ou
+`503`, aguarda o `Retry-After` antes de repetir.
+
+```powerquery
 let
-    Chave = "zk_live_...",
-    Base = "https://api.ziala.com.br/v1/",
-    Pagina = (cursor as nullable text) =>
-        Json.Document(
-            Web.Contents(
-                Base,
+    Chave = ZialaApiKey,
+    Endpoint = "contacts",
+    Pagina = (cursor as nullable text, tentativa as number) =>
+        let
+            Resposta = Web.Contents(
+                "https://api.ziala.com.br/v1/",
                 [
-                    RelativePath = "contacts",
+                    RelativePath = Endpoint,
                     Query = if cursor = null then [limit = "200"] else [limit = "200", cursor = cursor],
-                    Headers = [Authorization = "Bearer " & Chave]
+                    Headers = [Authorization = "Bearer " & Chave],
+                    ManualStatusHandling = {429, 503},
+                    IsRetry = tentativa > 0
                 ]
-            )
-        ),
+            ),
+            Meta = Value.Metadata(Resposta),
+            Status = Meta[Response.Status],
+            Espera = Number.From(Record.FieldOrDefault(Meta[Headers], "Retry-After", "5")),
+            Resultado =
+                if Status = 429 or Status = 503 then
+                    if tentativa >= 5 then error "API de dados: limite de requisições atingido."
+                    else Function.InvokeAfter(() => @Pagina(cursor, tentativa + 1), #duration(0, 0, 0, Espera))
+                else Json.Document(Resposta)
+        in
+            Resultado,
     Paginas = List.Generate(
-        () => Pagina(null),
+        () => Pagina(null, 0),
         each _ <> null,
-        each if _[has_more] then Pagina(_[next_cursor]) else null
+        each if _[has_more] then Pagina(_[next_cursor], 0) else null
     ),
-    Linhas = List.Combine(List.Transform(Paginas, each _[data])),
-    Tabela = Table.FromRecords(Linhas)
+    Registros = List.Combine(List.Transform(Paginas, each _[data])),
+    Tabela = Table.FromRecords(Registros)
 in
     Tabela
 ```
 
-- Em **Fonte de dados**, deixe a autenticação como anônima: a chave já vai no
-  cabeçalho. Não publique o arquivo com a chave para pessoas que não devem lê-la.
-- Para contas grandes, use a **atualização incremental** do Power BI com o filtro de
-  data ligado a `updated_since`, e marque `id` como chave.
+## Configuração
+
+1. Crie um parâmetro de texto chamado `ZialaApiKey` em **Gerenciar parâmetros** e
+   preencha com a chave. A consulta lê a chave dele, e não do código.
+2. Duplique a consulta para cada endpoint e troque o valor de `Endpoint`.
+3. Em **Configurações da fonte de dados**, defina a autenticação como **Anônima**. A chave
+   já vai no cabeçalho.
+
+<Warning>
+  Arquivos `.pbix` guardam os parâmetros. Não compartilhe o arquivo com quem não deve ter
+  acesso à chave.
+</Warning>
+
+## Volume
+
+A consulta faz uma carga completa a cada atualização. Ela atende contas com até algumas
+dezenas de milhares de registros: com páginas de 200 itens e o limite de 60 requisições
+por minuto do plano Pro, cada minuto lê até 12.000 registros.
+
+A atualização incremental nativa do Power BI substitui partições por data e não aplica
+exclusões, então não reproduz a sincronização da API. Para volumes maiores, carregue a
+API num data warehouse e conecte o Power BI a ele. Veja
+[Data warehouse](/guias/data-warehouse).

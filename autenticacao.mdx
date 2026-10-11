@@ -1,33 +1,48 @@
 ---
 title: 'Autenticação'
-description: 'Chave de leitura da conta, no cabeçalho Authorization.'
+description: 'Chaves de API por conta, enviadas no cabeçalho Authorization.'
 ---
 
-Toda chamada leva a chave da conta no cabeçalho:
+A API autentica cada requisição com uma chave secreta da conta, enviada como token
+Bearer:
 
 ```
-Authorization: Bearer zk_live_...
+Authorization: Bearer zk_live_xxxxxxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 ```
 
-## Regras da chave
+Requisições sem chave, com chave inválida ou com chave revogada recebem `401`.
 
-- **Uma chave pertence a uma conta.** Os dados que ela lê são sempre os da conta que a
-  criou; não há como pedir dados de outra conta.
-- **Até 5 chaves ativas por conta.** Use uma por sistema. Assim, revogar a do painel de
-  vendas não para a plataforma de dados.
-- **A chave aparece uma vez,** no momento em que é criada. A Ziala guarda só uma
-  impressão dela, não a chave. Perdeu? Crie outra e revogue a antiga.
-- **Revogar vale na hora.** A chave revogada passa a receber `401`.
-- **Desligar a API de dados** em Integrações derruba todas as chaves da conta na hora, e
-  religar volta a aceitá-las.
-- **Nunca coloque a chave na URL** (parâmetro de consulta) nem em código que vai para o
-  navegador. Ela é segredo do servidor que faz a leitura.
+## Escopo e permissões
 
-## Trocar a chave sem parar o painel
+- Cada chave pertence a uma conta e só lê os dados dessa conta.
+- Toda chave tem o escopo `data:read`. Não há operações de escrita.
+- Uma conta pode ter até **5 chaves ativas**. Use uma chave por sistema consumidor: assim
+  é possível revogar uma sem interromper as outras.
 
-1. Crie a chave nova.
-2. Troque no sistema que lê os dados e confira que ele voltou a ler.
-3. Revogue a antiga.
+## Ciclo de vida da chave
 
-A tela de chaves mostra o último uso (data e endereço) de cada uma, para você saber se a
-antiga ainda está sendo usada antes de revogar.
+| Ação | Efeito |
+| --- | --- |
+| Criar | A chave é exibida uma única vez. A Ziala armazena só o hash e não consegue exibi-la de novo. |
+| Revogar | Efeito imediato: as requisições seguintes recebem `401`. |
+| Desligar a API de dados | Todas as chaves da conta passam a receber `403`. Religar restabelece o acesso. |
+
+Para cada chave, o painel mostra a data e o IP do último uso.
+
+## Rotação sem interrupção
+
+1. Crie uma chave nova.
+2. Atualize o sistema consumidor e confirme que as leituras voltaram a funcionar.
+3. Confira no painel que a chave antiga parou de ser usada e revogue-a.
+
+## Boas práticas
+
+<Warning>
+  A chave dá acesso aos dados pessoais dos seus contatos. Trate-a como uma senha.
+</Warning>
+
+- Guarde a chave num gerenciador de segredos, nunca no código-fonte.
+- Use a chave só em servidores. Nunca a coloque em código que roda no navegador ou em
+  aplicativos.
+- Nunca envie a chave em parâmetros de URL: URLs ficam registradas em logs e proxies.
+- Se suspeitar de vazamento, revogue a chave imediatamente e crie outra.

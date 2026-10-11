@@ -1,0 +1,45 @@
+---
+title: 'Plataformas de dados'
+description: 'Configuração de fontes "REST API" genéricas, como as de Fivetran, Hevo e similares.'
+---
+
+Plataformas de dados com uma fonte "REST API" genérica conseguem ler a API sem código.
+Os nomes das opções variam entre plataformas; a tabela usa os termos mais comuns.
+
+| Opção | Valor |
+| --- | --- |
+| URL base | `https://api.ziala.com.br/v1` |
+| Autenticação | Bearer token, com a chave da API |
+| Endpoint de cada stream | `/contacts`, `/contact_fields`, `/conversations`, `/stage_events`, `/deletions` |
+| Seletor de registros (JSONPath) | `$.data[*]` |
+| Paginação | Cursor, lido de `$.next_cursor` e enviado no parâmetro `cursor` |
+| Condição de parada | `$.has_more` igual a `false` |
+| Chave primária | `id` (em `contact_fields`, a chave composta `contact_id` + `field_key`) |
+| Modo de gravação | Upsert (merge) pela chave primária |
+
+## Leitura incremental
+
+A configuração depende do que a plataforma guarda entre execuções.
+
+<Tabs>
+  <Tab title="Guarda o último valor lido">
+    Configure `updated_at` como campo de cursor incremental (`created_at` em
+    `stage_events`, `deleted_at` em `deletions`) e envie o valor guardado no parâmetro
+    `updated_since`. O recuo de 5 minutos da API cobre a diferença entre o último
+    `updated_at` lido e a marca d'água.
+  </Tab>
+  <Tab title="Não guarda estado">
+    Use uma janela móvel: parâmetro fixo `updated_since` com a data de dois dias atrás,
+    no formato `AAAA-MM-DD`. Se a plataforma aceitar expressões de data, use algo como
+    `{{today-2d|YYYY-MM-DD}}`. Cada execução relê os dois últimos dias, e o upsert
+    absorve as repetições.
+  </Tab>
+</Tabs>
+
+## Recomendações
+
+- Agende as execuções com intervalo maior que a janela de estabilização de 2 minutos.
+- Configure uma carga completa semanal para reconciliação.
+- Inclua o stream `deletions` e aplique as exclusões no destino. Veja
+  [Exclusões](/conceitos/exclusoes).
+- Verifique se a plataforma respeita o `Retry-After` em respostas `429`.
