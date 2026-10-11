@@ -4,6 +4,9 @@ description: 'Mudanças na API de dados, da mais recente para a mais antiga.'
 ---
 
 <Update label="11 de outubro de 2026" description="v1">
+  - Limite por minuto sobe para 300 (Pro) e 600 (Enterprise). Requisições simultâneas
+    por conta passam de 2 para 1: a segunda chamada em paralelo recebe `429` com
+    `Retry-After: 1`.
   - Respostas de erro ganham o atributo `detail` com a explicação da ocorrência. O
     `title` passa a ser fixo por status.
   - A referência passa a descrever cada atributo, os parâmetros, os cabeçalhos de limite
