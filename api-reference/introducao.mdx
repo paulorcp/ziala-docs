@@ -1,35 +1,12 @@
 ---
 title: 'Referência da API'
 sidebarTitle: 'Visão geral'
-description: 'Endpoints, parâmetros e atributos da API de dados v1.'
+description: 'Endpoints, parâmetros e atributos da v1.'
 ---
 
-## URL base
-
-```
-https://api.ziala.com.br/v1
-```
-
-## Autenticação
-
-Envie a chave da conta no cabeçalho `Authorization`. Detalhes em
-[Autenticação](/autenticacao).
-
-```bash
-curl https://api.ziala.com.br/v1/me \
-  -H "Authorization: Bearer $ZIALA_API_KEY"
-```
-
-## Convenções
-
-- Todos os endpoints são `GET` e somente leitura.
-- Listas são paginadas por cursor e retornam `data`, `next_cursor`, `has_more` e
-  `sync_watermark`. Veja [Paginação](/conceitos/paginacao).
-- Datas em ISO 8601, em UTC. Atributos sem valor vêm como `null`.
-- Erros seguem a RFC 9457. Veja [Erros](/conceitos/erros).
-
-## Especificação OpenAPI
-
-A especificação completa, em OpenAPI 3, está em
-[`https://api.ziala.com.br/v1/openapi.json`](https://api.ziala.com.br/v1/openapi.json).
-Use-a para gerar clientes ou importar em ferramentas como Postman e Insomnia.
+- URL base: `https://api.ziala.com.br/v1`
+- Autenticação: `Authorization: Bearer <chave>`. Veja [Autenticação](/autenticacao).
+- Todos os endpoints são `GET`.
+- Listas: veja [Paginação](/conceitos/paginacao).
+- Erros: veja [Erros](/conceitos/erros).
+- Especificação: [`/v1/openapi.json`](https://api.ziala.com.br/v1/openapi.json)

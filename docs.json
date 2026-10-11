@@ -28,7 +28,6 @@
                 "group": "Começar",
                 "pages": [
                   "index",
-                  "inicio-rapido",
                   "autenticacao"
                 ]
               },
@@ -42,16 +41,6 @@
                   "conceitos/limites",
                   "conceitos/erros",
                   "conceitos/versionamento"
-                ]
-              },
-              {
-                "group": "Guias de integração",
-                "pages": [
-                  "guias/plataformas-de-dados",
-                  "guias/airbyte",
-                  "guias/power-bi",
-                  "guias/data-warehouse",
-                  "guias/codigo-proprio"
                 ]
               },
               {
@@ -140,11 +129,35 @@
     },
     {
       "source": "/guias/rest-curl",
-      "destination": "/guias/codigo-proprio"
+      "destination": "/"
     },
     {
       "source": "/guias/plataforma-de-dados",
-      "destination": "/guias/plataformas-de-dados"
+      "destination": "/"
+    },
+    {
+      "source": "/guias/codigo-proprio",
+      "destination": "/"
+    },
+    {
+      "source": "/guias/plataformas-de-dados",
+      "destination": "/"
+    },
+    {
+      "source": "/guias/airbyte",
+      "destination": "/"
+    },
+    {
+      "source": "/guias/power-bi",
+      "destination": "/"
+    },
+    {
+      "source": "/guias/data-warehouse",
+      "destination": "/"
+    },
+    {
+      "source": "/inicio-rapido",
+      "destination": "/"
     }
   ]
 }

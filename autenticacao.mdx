@@ -1,48 +1,15 @@
 ---
 title: 'Autenticação'
-description: 'Chaves de API por conta, enviadas no cabeçalho Authorization.'
+description: 'Chave de API por conta, enviada como token Bearer.'
 ---
 
-A API autentica cada requisição com uma chave secreta da conta, enviada como token
-Bearer:
-
 ```
-Authorization: Bearer zk_live_xxxxxxxxxxxx_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+Authorization: Bearer zk_live_<id>_<segredo>
 ```
 
-Requisições sem chave, com chave inválida ou com chave revogada recebem `401`.
-
-## Escopo e permissões
-
-- Cada chave pertence a uma conta e só lê os dados dessa conta.
-- Toda chave tem o escopo `data:read`. Não há operações de escrita.
-- Uma conta pode ter até **5 chaves ativas**. Use uma chave por sistema consumidor: assim
-  é possível revogar uma sem interromper as outras.
-
-## Ciclo de vida da chave
-
-| Ação | Efeito |
-| --- | --- |
-| Criar | A chave é exibida uma única vez. A Ziala armazena só o hash e não consegue exibi-la de novo. |
-| Revogar | Efeito imediato: as requisições seguintes recebem `401`. |
-| Desligar a API de dados | Todas as chaves da conta passam a receber `403`. Religar restabelece o acesso. |
-
-Para cada chave, o painel mostra a data e o IP do último uso.
-
-## Rotação sem interrupção
-
-1. Crie uma chave nova.
-2. Atualize o sistema consumidor e confirme que as leituras voltaram a funcionar.
-3. Confira no painel que a chave antiga parou de ser usada e revogue-a.
-
-## Boas práticas
-
-<Warning>
-  A chave dá acesso aos dados pessoais dos seus contatos. Trate-a como uma senha.
-</Warning>
-
-- Guarde a chave num gerenciador de segredos, nunca no código-fonte.
-- Use a chave só em servidores. Nunca a coloque em código que roda no navegador ou em
-  aplicativos.
-- Nunca envie a chave em parâmetros de URL: URLs ficam registradas em logs e proxies.
-- Se suspeitar de vazamento, revogue a chave imediatamente e crie outra.
+- A chave pertence a uma conta e só lê os dados dela. Escopo único: `data:read`.
+- Até 5 chaves ativas por conta.
+- A chave é exibida só na criação. A Ziala armazena apenas o hash.
+- Chave ausente, inválida ou revogada: `401`. A revogação tem efeito imediato.
+- API de dados desligada na conta: `403` para todas as chaves.
+- Não envie a chave em parâmetro de URL.

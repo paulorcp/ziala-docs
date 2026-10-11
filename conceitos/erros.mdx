@@ -1,11 +1,10 @@
 ---
 title: 'Erros'
-description: 'Formato das respostas de erro e como tratar cada status.'
+description: 'Formato RFC 9457 e códigos de status.'
 ---
 
-A API usa os códigos de status HTTP e responde erros no formato
-[RFC 9457](https://www.rfc-editor.org/rfc/rfc9457), com
-`Content-Type: application/problem+json`:
+Erros seguem a [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457), com
+`Content-Type: application/problem+json`.
 
 ```json
 {
@@ -17,29 +16,17 @@ A API usa os códigos de status HTTP e responde erros no formato
 }
 ```
 
-| Atributo | Descrição |
+`title` é fixo por status. `detail` descreve a ocorrência e pode mudar de texto.
+`request_id` identifica a requisição para o suporte.
+
+| Status | Significado |
 | --- | --- |
-| `type` | Sempre `about:blank`: o status HTTP já identifica o tipo de erro. |
-| `title` | Resumo fixo para o status. |
-| `status` | Status HTTP. |
-| `detail` | Explicação desta ocorrência. O texto pode mudar: não o use em lógica de programa. |
-| `request_id` | Identificador da requisição. Informe-o ao suporte. |
+| `400` | Parâmetro ou cursor inválido. |
+| `401` | Chave ausente, inválida ou revogada. |
+| `403` | API de dados desligada na conta, ou plano sem acesso. |
+| `404` | Registro não encontrado nesta conta. |
+| `429` | Limite de requisições atingido. |
+| `500` | Erro inesperado. |
+| `503` | Serviço temporariamente indisponível. |
 
-## Códigos de status
-
-| Status | Significado | Ação recomendada | Repetir? |
-| --- | --- | --- | --- |
-| `400` | Parâmetro inválido ou cursor inválido. | Corrija o parâmetro. Para cursor, recomece a leitura sem ele. | Não |
-| `401` | Chave ausente, inválida ou revogada. | Confira a chave no painel. | Não |
-| `403` | API de dados desligada na conta. | Um administrador da conta liga a API em Integrações. | Não |
-| `403` | Plano da conta sem acesso à API de dados. | Fale com o suporte da Ziala sobre o plano. | Não |
-| `404` | Registro não encontrado nesta conta. | Nenhuma. | Não |
-| `429` | Limite de requisições atingido. | Aguarde o `Retry-After`. | Sim |
-| `500` | Erro inesperado. | Repita com espera crescente. Se persistir, informe o `request_id`. | Sim |
-| `503` | Serviço temporariamente indisponível. | Aguarde o `Retry-After`. | Sim |
-
-## Novas tentativas
-
-Repita apenas `429`, `500` e `503`. Respeite o `Retry-After` quando houver; sem ele, use
-espera exponencial (1, 2, 4, 8 segundos) e desista após cinco tentativas. Todas as
-operações são de leitura, então repetir uma requisição nunca altera dados.
+Todas as operações são de leitura: repetir uma requisição é sempre seguro.

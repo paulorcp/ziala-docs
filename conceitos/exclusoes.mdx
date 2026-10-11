@@ -1,39 +1,22 @@
 ---
 title: 'Exclusões'
-description: 'Replique na sua cópia os registros apagados na Ziala.'
+description: 'Registros apagados, para replicar a exclusão.'
 ---
 
-Registros apagados não aparecem mais nas listas. Para removê-los da sua cópia, leia
-`/v1/deletions`:
+`GET /v1/deletions` lista contatos e conversas apagados, com a mesma paginação e
+sincronização incremental dos demais endpoints, filtrada por `deleted_at`.
 
 ```json
 {
-  "data": [
-    {
-      "id": "8d1e4b7a-…",
-      "object_type": "contact",
-      "object_id": "3f6c2a9e-…",
-      "deleted_at": "2026-10-14T09:12:40.000Z"
-    }
-  ],
-  "next_cursor": null,
-  "has_more": false,
-  "sync_watermark": "2026-10-14T10:00:00.000Z"
+  "id": "8d1e4b7a-…",
+  "object_type": "contact",
+  "object_id": "3f6c2a9e-…",
+  "deleted_at": "2026-10-14T09:12:40.000Z"
 }
 ```
 
-## Regras
-
-- `object_type` é `contact` ou `conversation`.
-- Apagar um contato apaga junto as conversas, os valores de campo e as mudanças de etapa
-  dele. Ao receber a exclusão de um contato, remova da sua cópia todos os registros com
-  esse `contact_id`.
-- O endpoint segue a mesma [sincronização incremental](/conceitos/sincronizacao-incremental)
-  dos demais, filtrando por `deleted_at`.
-- As exclusões ficam disponíveis por **90 dias**. Se a sua integração ficar parada por
-  mais tempo, faça uma carga completa e substitua a cópia.
-
-<Note>
-  Replique as exclusões para manter a sua cópia em conformidade com os pedidos de
-  exclusão atendidos na Ziala (LGPD).
-</Note>
+- `object_type`: `contact` ou `conversation`.
+- A exclusão de um contato gera uma entrada para o contato e uma para cada conversa dele.
+  Os valores de campo e as mudanças de etapa do contato também são removidos, sem
+  entradas próprias: remova-os pelo `contact_id`.
+- Retenção de 90 dias.

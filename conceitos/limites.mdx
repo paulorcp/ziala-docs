@@ -1,6 +1,6 @@
 ---
 title: 'Limites de uso'
-description: 'Limites de requisições por plano e como tratá-los.'
+description: 'Limites de requisições por plano.'
 ---
 
 | Limite | Pro | Enterprise |
@@ -9,32 +9,25 @@ description: 'Limites de requisições por plano e como tratá-los.'
 | Requisições por dia, por conta | 10.000 | 50.000 |
 | Requisições simultâneas, por conta | 2 | 2 |
 
-Os limites vigentes da sua conta estão em [`GET /v1/me`](/api-reference/conta/obter-conta).
-Requisições recusadas por limite não contam na cota diária.
+Os limites da conta também estão em `GET /v1/me`. Requisições recusadas não contam na
+cota diária.
 
 ## Cabeçalhos
 
-As respostas `200`, `429` e `503` informam a situação do limite por minuto:
+Presentes nas respostas `200`, `429` e `503`:
 
 | Cabeçalho | Descrição |
 | --- | --- |
-| `RateLimit-Limit` | Requisições permitidas na janela. |
-| `RateLimit-Remaining` | Requisições restantes na janela. |
-| `RateLimit-Reset` | Segundos até a janela reiniciar. |
+| `RateLimit-Limit` | Requisições por minuto da chave. |
+| `RateLimit-Remaining` | Requisições restantes no minuto. |
+| `RateLimit-Reset` | Segundos até o minuto reiniciar. |
+| `Retry-After` | Em `429` e `503`: segundos a aguardar. |
 
-## Ao atingir um limite
+## Respostas
 
 | Situação | Status | `Retry-After` |
 | --- | --- | --- |
-| Limite por minuto excedido | `429` | Segundos até o minuto reiniciar |
-| Limite diário excedido | `429` | 3600 |
-| Mais de 2 requisições simultâneas na conta | `429` | 1 |
-| Serviço temporariamente ocupado | `503` | 5 |
-
-Aguarde o tempo do `Retry-After` e repita a mesma requisição, com o mesmo cursor. Para
-não esbarrar no limite simultâneo, leia os endpoints em sequência, não em paralelo.
-
-## Dimensionamento
-
-Com `limit=200`, uma conta com 50.000 contatos é lida inteira em 250 requisições. Uma
-leitura incremental por hora costuma exigir poucas requisições por endpoint.
+| Limite por minuto | `429` | Até o minuto reiniciar |
+| Limite diário | `429` | 3600 |
+| Limite de simultâneas | `429` | 1 |
+| Serviço ocupado | `503` | 5 |

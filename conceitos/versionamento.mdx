@@ -3,24 +3,12 @@ title: 'Versionamento'
 description: 'Política de compatibilidade da v1.'
 ---
 
-A versão faz parte do caminho: `https://api.ziala.com.br/v1`.
+A versão está no caminho (`/v1`).
 
-## Mudanças compatíveis
+Mudanças compatíveis, que podem ocorrer sem aviso: novos endpoints, novos atributos, novos
+parâmetros opcionais, novos valores em atributos enumerados e mudanças no texto de
+`detail`. Ignore atributos desconhecidos.
 
-Podem acontecer na v1 a qualquer momento, sem aviso prévio:
-
-- Novos endpoints.
-- Novos atributos nas respostas.
-- Novos parâmetros opcionais.
-- Novos valores em atributos enumerados, como `source`.
-- Mudanças no texto de `detail` nos erros.
-
-Construa a sua integração para ignorar atributos desconhecidos e tratar valores novos.
-
-## Mudanças incompatíveis
-
-Remover ou renomear um atributo, mudar o tipo ou o significado de um atributo, ou tornar
-obrigatório um parâmetro opcional só acontece numa nova versão. Se algo da v1 precisar
-ser descontinuado, as respostas passam a trazer os cabeçalhos `Deprecation` e `Sunset`
-com antecedência, e a mudança é registrada no
+Mudanças incompatíveis só ocorrem em nova versão. Descontinuações na v1 são anunciadas
+pelos cabeçalhos `Deprecation` e `Sunset` e registradas no
 [histórico de mudanças](/changelog).
