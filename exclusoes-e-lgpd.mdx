@@ -1,0 +1,30 @@
+---
+title: 'Exclusões e LGPD'
+description: 'Como apagar da sua cópia o que foi apagado na Ziala.'
+---
+
+Quando um contato é apagado na Ziala, as conversas, as mensagens e as mudanças de etapa
+dele são apagadas junto. Para a sua cópia acompanhar, leia `/v1/deletions`:
+
+```json
+{
+  "data": [
+    { "id": "…", "object_type": "contact", "object_id": "c_7f2…", "deleted_at": "…" },
+    { "id": "…", "object_type": "conversation", "object_id": "v_91a…", "deleted_at": "…" }
+  ],
+  "next_cursor": null,
+  "has_more": false,
+  "sync_watermark": "…"
+}
+```
+
+- Use `deleted_since` com a marca d'água, como nos outros endpoints.
+- Ao apagar um contato da sua cópia, apague também os campos e as mudanças de etapa dele.
+- **As exclusões ficam 90 dias neste endpoint.** Se o seu sistema ficar parado mais que
+  isso, faça uma carga completa.
+
+## Sua responsabilidade
+
+A cópia que o seu sistema guarda passa a ser tratada pela sua empresa, que responde por
+ela perante a LGPD: guarde com acesso restrito, pelo tempo que for necessário, e apague
+quando a Ziala apagar.

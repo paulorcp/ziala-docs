@@ -1,0 +1,22 @@
+---
+title: 'Airbyte'
+description: 'Conector de baixo código no Connector Builder.'
+---
+
+No **Connector Builder** do Airbyte:
+
+1. **Global configuration:** URL base `https://api.ziala.com.br/v1`, autenticação
+   **Bearer Token** com a chave.
+2. **Para cada stream** (`contacts`, `conversations`, `stage_events`, `deletions`):
+   - Record selector: `data`.
+   - Primary key: `id`.
+   - Pagination: **Cursor Pagination**, next page token
+     `{{ response.next_cursor }}`, stop condition `{{ not response.has_more }}`,
+     injetado como parâmetro `cursor`.
+   - Incremental sync: cursor field `updated_at` (`created_at` em `stage_events`,
+     `deleted_at` em `deletions`), formato `%Y-%m-%dT%H:%M:%S.%fZ`, injetado como
+     `updated_since` (ou `created_since`, `deleted_since`).
+3. No destino, use o modo **Incremental Append + Deduped**: ele grava pela chave `id`, que
+   é o que absorve os registros repetidos do recuo de 5 minutos.
+
+O Airbyte guarda o maior valor lido entre execuções, então não precisa de janela móvel.

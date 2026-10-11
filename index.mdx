@@ -1,20 +1,42 @@
 ---
-title: "Introduction"
-description: "Welcome to your project"
+title: 'API de dados'
+description: 'Leve os dados da sua conta para o seu painel ou plataforma de dados.'
 ---
 
-Write a short description of your product here. What it does, who it's for, and what they can accomplish with it.
+A API de dados entrega, só para leitura, os dados da sua conta na Ziala: contatos,
+campos dos contatos, conversas (com a origem do anúncio e o tempo da primeira
+resposta), mudanças de etapa e exclusões. É o caminho para montar painéis no Power BI,
+no Looker ou na sua plataforma de dados, sem pedir nada à equipe da Ziala.
 
-<Tip>
-  Ready to make this your own? Start by editing this page. Update your `docs.json` file to customize your site. Then fill out the [Quickstart](/quickstart) page.
-</Tip>
+## Como começar
 
-<Card title="Quickstart" icon="rocket" href="/quickstart">
-  This card links to the quickstart page in your project.
-</Card>
-<Card title="Components" icon="puzzle-piece" href="https://mintlify.com/docs/components">
-  Add cards, callouts, steps, tabs, and more to design and structure your pages.
-</Card>
-<Card title="Settings" icon="gear" href="https://mintlify.com/docs/organize/settings">
-  Set your site name, branding, and navigation in the `docs.json` file.
-</Card>
+1. **Ligue a API de dados** em Integrações, no painel da Ziala (só administradores).
+2. **Crie uma chave** na mesma tela. Ela aparece uma única vez: copie e guarde no
+   sistema que vai ler os dados.
+3. **Faça a primeira chamada:**
+
+```bash
+curl https://api.ziala.com.br/v1/me \
+  -H "Authorization: Bearer $ZIALA_API_KEY"
+```
+
+A resposta traz o nome da conta e os limites do seu plano.
+
+## O que você encontra aqui
+
+| Página                                          | Para quê                                              |
+| ----------------------------------------------- | ----------------------------------------------------- |
+| [Autenticação](/autenticacao)                   | Como a chave funciona, quantas criar, como revogar    |
+| [Objetos](/objetos)                             | O que cada endpoint devolve, campo por campo          |
+| [Paginação e atraso](/paginacao-e-atraso)       | Como percorrer as páginas e buscar só o que mudou     |
+| [Receitas](/receitas-incrementais)              | O jeito certo para cada tipo de ferramenta            |
+| [Exclusões e LGPD](/exclusoes-e-lgpd)           | Como apagar da sua cópia o que foi apagado na Ziala   |
+| [Limites](/limites), [Erros](/erros)            | Quanto pode chamar e o que fazer quando algo falha    |
+
+A referência completa, gerada do próprio código, fica em
+[`/v1/openapi.json`](https://api.ziala.com.br/v1/openapi.json).
+
+<Note>
+  A API está disponível nos planos Pro e Enterprise. Nada do que ela faz altera dados na
+  Ziala.
+</Note>

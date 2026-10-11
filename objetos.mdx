@@ -1,0 +1,64 @@
+---
+title: 'Objetos'
+description: 'O que cada endpoint devolve.'
+---
+
+Todas as respostas usam colunas planas (sem objetos aninhados), nomes em inglês, datas
+em ISO 8601 com fuso (`2026-11-03T14:02:11.000Z`) e telefone no formato internacional
+(`+5548999990000`). Campo sem valor vem como `null`.
+
+| Endpoint                  | Devolve                                                  | "Só o que mudou" por |
+| ------------------------- | -------------------------------------------------------- | -------------------- |
+| `GET /v1/me`              | conta, escopos da chave e limites                        | n/a                  |
+| `GET /v1/contacts`        | contatos, com etapa atual e primeira origem              | `updated_since`      |
+| `GET /v1/contacts/{id}`   | um contato                                               | n/a                  |
+| `GET /v1/contact_fields`  | campos dos contatos, uma linha por contato e campo       | `updated_since`      |
+| `GET /v1/conversations`   | conversas com origem, contagens e primeira resposta      | `updated_since`      |
+| `GET /v1/stage_events`    | mudanças de etapa                                        | `updated_since`      |
+| `GET /v1/pipeline_stages` | etapas dos funis (dicionário)                            | n/a                  |
+| `GET /v1/fields`          | campos cadastrados na conta (dicionário)                 | n/a                  |
+| `GET /v1/deletions`       | contatos e conversas apagados                            | `updated_since`      |
+
+## Contato
+
+`id`, `created_at`, `updated_at`, `name`, `first_name`, `last_name`, `email`, `phone`,
+`job_title`, `company_name`, `icp_id`, `qualification_score`, `temperature`, `source`,
+`source_detail`, `consent_given_at`, `do_not_contact`, `do_not_contact_at`, `won_at`,
+`lost_at`, `current_stage_id`, `current_stage_entered_at`, `current_agent_id`,
+`last_activity_at` e a primeira origem: `first_origin_kind` (`ad` ou `link`),
+`first_origin_ad_id`, `first_origin_ctwa_clid`, `first_origin_headline`,
+`first_origin_at`, `first_campaign_id`.
+
+## Campos do contato (formato longo)
+
+Uma linha por contato e campo: `contact_id`, `field_key`, `value`, `updated_at`. O valor
+é texto, número ou verdadeiro/falso; lista vira texto JSON (`["a","b"]`). O formato longo
+existe para não criar uma coluna nova no seu painel a cada campo cadastrado. Só saem
+campos cadastrados em Campos; a lista deles está em `/v1/fields`.
+
+## Conversa
+
+`id`, `contact_id`, `created_at`, `updated_at`, `closed_at`, `active`, `channel_id`,
+`agent_id`, a origem (`origin_kind`, `origin_ad_id`, `origin_ctwa_clid`,
+`origin_headline`, `origin_at`, `campaign_id`), o desfecho (`outcome_category`,
+`outcome_stage_id`, `outcome_set_at`) e as métricas: `contact_message_count`,
+`agent_message_count` e `first_response_at` (primeira resposta do agente depois da
+primeira mensagem do contato).
+
+## Mudança de etapa
+
+`id`, `contact_id`, `pipeline_id`, `agent_id`, `from_stage_id`, `from_stage_key`,
+`to_stage_id`, `to_stage_key`, `created_at`. Depois de gravada, não muda.
+
+## O que não sai
+
+Texto escrito pelo agente sobre a pessoa (resumos, motivos), o conteúdo das mensagens,
+instruções do agente e contatos do ambiente de teste. A lista exata está no contrato em
+`/v1/openapi.json`.
+
+## Limitações que vale saber
+
+- Dentro de uma mesma conversa, se a pessoa chegar por um segundo anúncio, a origem da
+  conversa passa a ser o segundo.
+- Mensagens novas nem sempre fazem a conversa reaparecer em "só o que mudou": para as
+  métricas da conversa, recomendamos uma carga completa diária de `/v1/conversations`.

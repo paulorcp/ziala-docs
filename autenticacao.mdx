@@ -1,0 +1,33 @@
+---
+title: 'Autenticação'
+description: 'Chave de leitura da conta, no cabeçalho Authorization.'
+---
+
+Toda chamada leva a chave da conta no cabeçalho:
+
+```
+Authorization: Bearer zk_live_...
+```
+
+## Regras da chave
+
+- **Uma chave pertence a uma conta.** Os dados que ela lê são sempre os da conta que a
+  criou; não há como pedir dados de outra conta.
+- **Até 5 chaves ativas por conta.** Use uma por sistema. Assim, revogar a do painel de
+  vendas não para a plataforma de dados.
+- **A chave aparece uma vez,** no momento em que é criada. A Ziala guarda só uma
+  impressão dela, não a chave. Perdeu? Crie outra e revogue a antiga.
+- **Revogar vale na hora.** A chave revogada passa a receber `401`.
+- **Desligar a API de dados** em Integrações derruba todas as chaves da conta na hora, e
+  religar volta a aceitá-las.
+- **Nunca coloque a chave na URL** (parâmetro de consulta) nem em código que vai para o
+  navegador. Ela é segredo do servidor que faz a leitura.
+
+## Trocar a chave sem parar o painel
+
+1. Crie a chave nova.
+2. Troque no sistema que lê os dados e confira que ele voltou a ler.
+3. Revogue a antiga.
+
+A tela de chaves mostra o último uso (data e endereço) de cada uma, para você saber se a
+antiga ainda está sendo usada antes de revogar.

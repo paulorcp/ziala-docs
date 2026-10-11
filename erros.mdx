@@ -1,0 +1,26 @@
+---
+title: 'Erros'
+description: 'Formato dos erros e o que fazer com cada um.'
+---
+
+Erros vêm no padrão RFC 9457, com `Content-Type: application/problem+json`:
+
+```json
+{
+  "type": "about:blank",
+  "title": "limit deve ser um número inteiro de 1 a 200.",
+  "status": 400,
+  "request_id": "req-3f2a"
+}
+```
+
+Ao falar com o suporte, mande o `request_id`.
+
+| Status | Quando                                                     | O que fazer                                   |
+| ------ | ---------------------------------------------------------- | --------------------------------------------- |
+| 400    | parâmetro inválido ou cursor de outra leitura               | corrigir o parâmetro; recomeçar sem cursor    |
+| 401    | chave ausente, errada ou revogada                          | conferir a chave em Integrações               |
+| 403    | API desligada na conta, ou plano sem o recurso             | ligar em Integrações ou falar com a Ziala     |
+| 404    | registro não existe nesta conta                            | nada a fazer                                  |
+| 429    | limite por minuto, por dia ou de chamadas ao mesmo tempo   | esperar o `Retry-After` e repetir             |
+| 503    | serviço ocupado ou consulta demorada                       | esperar o `Retry-After` e repetir             |

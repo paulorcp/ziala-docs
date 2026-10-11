@@ -1,0 +1,45 @@
+---
+title: 'Paginação e atraso'
+description: 'Como percorrer as páginas e buscar só o que mudou, sem perder nada.'
+---
+
+## Formato das listas
+
+```json
+{
+  "data": [{ "id": "…", "updated_at": "2026-11-03T14:31:02.000Z" }],
+  "next_cursor": "eyJ0Ijoi…",
+  "has_more": true,
+  "sync_watermark": "2026-11-03T14:29:00.000Z"
+}
+```
+
+- `limit`: de 1 a 200 itens por página (padrão 100).
+- `next_cursor`: envie como `cursor` para buscar a próxima página. Quando vier `null`,
+  acabou.
+- A ordem é sempre pela data e pelo `id`, crescente. Parâmetros de ordenação que a sua
+  ferramenta acrescentar são ignorados.
+- Cada resposta tem no máximo 2 MB; se precisar, a página vem com menos itens e o cursor
+  continua de onde parou.
+
+## Buscar só o que mudou
+
+Envie `updated_since` com uma data ISO 8601 com fuso, ou só o dia (`2026-11-03`, lido
+como meia-noite UTC). O mesmo nome vale em todos os endpoints; em `stage_events` e
+`deletions` também se aceita `created_since` e `deleted_since`.
+
+### Três regras que garantem que nada se perde
+
+1. **Atraso de 2 minutos.** Nada mais novo que 2 minutos sai. É o tempo para todo
+   registro em gravação terminar de gravar; sem isso, um registro poderia ficar para trás
+   sem ninguém perceber.
+2. **Marca d'água.** Toda lista devolve `sync_watermark`: o instante até onde aquela
+   leitura está completa, igual em todas as páginas da mesma leitura. Guarde o valor da
+   última página e use como `updated_since` na próxima execução.
+3. **Recuo de 5 minutos.** A API sempre lê a partir de 5 minutos antes do
+   `updated_since` pedido, para cobrir relógio adiantado e quem guarda a hora da própria
+   execução no lugar da marca d'água.
+
+Por causa da regra 3, alguns registros vêm de novo na leitura seguinte. **Grave sempre
+pela chave `id`** (atualizar se existe, inserir se não existe). Repetir um registro não
+causa problema; perder um causaria.

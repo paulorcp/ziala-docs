@@ -1,0 +1,35 @@
+---
+title: 'Plataforma de dados com fonte REST'
+description: 'Configurar a fonte "REST API" genérica de uma plataforma de dados.'
+---
+
+Plataformas de dados (Nekt, Fivetran, Hevo, entre outras) têm uma fonte "REST API"
+genérica. A configuração abaixo foi testada na prática; os nomes dos campos variam um
+pouco de uma plataforma para outra.
+
+| Campo da fonte                   | Valor                                            |
+| -------------------------------- | ------------------------------------------------ |
+| URL base                         | `https://api.ziala.com.br/v1`                    |
+| Autenticação                     | Bearer token, com a chave                        |
+| Caminho de cada stream           | `/contacts`, `/conversations`, `/stage_events`… |
+| Caminho dos registros (JSONPath) | `$.data[*]`                                      |
+| Paginação                        | cursor, lido em `$.next_cursor`, enviado como `cursor` |
+| Chave primária                   | `id`                                             |
+| Parâmetro fixo                   | `updated_since` = hoje menos 2 dias (`AAAA-MM-DD`) |
+
+## Por que a janela de dois dias
+
+Na prova feita em outubro de 2026, a fonte REST testada:
+
+- seguiu o cursor e parou sozinha quando ele acabou;
+- gravou pela chave `id` (registro alterado substituiu o anterior, sem duplicar);
+- respeitou o `Retry-After` quando recebeu 429;
+- acrescentou parâmetros próprios de ordenação, que a API ignora;
+- **não enviou a data da última leitura** entre execuções.
+
+Sem guardar a marca d'água, o caminho seguro é a janela móvel: cada execução relê os
+dois últimos dias, e a gravação pela chave absorve as repetições. Configure também uma
+carga completa semanal.
+
+Se a sua plataforma aceitar marcadores de data no parâmetro, como
+`{{today-2d|YYYY-MM-DD}}`, use-os para a janela andar sozinha.

@@ -1,0 +1,54 @@
+---
+title: 'Receitas por tipo de ferramenta'
+description: 'O jeito certo de buscar só o que mudou, conforme o que a sua ferramenta sabe guardar.'
+---
+
+## 1. Código próprio, Fivetran ou Airbyte (guardam um valor entre execuções)
+
+Guarde o `sync_watermark` da última página e envie como `updated_since` na próxima. É o
+jeito mais econômico. O script de referência em Python, só com a biblioteca padrão, faz
+exatamente isso: veja o [script de referência](/guias/rest-curl#script-de-referência).
+
+## 2. Plataforma de dados com fonte REST genérica (guarda só a data da execução)
+
+Muitas plataformas não guardam o maior valor lido, só a data da última execução. Para
+elas, use uma **janela móvel**: peça sempre os dois últimos dias e grave pela chave
+`id`.
+
+| Configuração                   | Valor                                       |
+| ------------------------------ | ------------------------------------------- |
+| Autenticação                   | Bearer, com a chave                          |
+| Registros                      | `$.data[*]`                                  |
+| Paginação                      | cursor em `$.next_cursor`, enviado como `cursor` |
+| Parâmetro fixo                 | `updated_since` = hoje menos 2 dias (`AAAA-MM-DD`) |
+| Chave primária                 | `id`                                         |
+| Carga completa                 | uma vez por semana                           |
+
+## 3. Power BI
+
+Use a atualização incremental com o filtro de data ligado a `updated_since`, ou, para
+contas com poucos milhares de registros, a carga completa diária.
+
+## 4. Pouso em Snowflake, Databricks ou BigQuery
+
+Grave a página numa tabela de pouso e aplique no destino ficando com a versão mais nova
+de cada `id`, e apagando o que veio em `/v1/deletions`:
+
+```sql
+MERGE INTO contatos AS d
+USING (
+  SELECT * FROM pouso_contatos
+  QUALIFY ROW_NUMBER() OVER (PARTITION BY id ORDER BY updated_at DESC) = 1
+) AS o
+ON d.id = o.id
+WHEN MATCHED AND o.updated_at >= d.updated_at THEN UPDATE SET d.* = o.*
+WHEN NOT MATCHED THEN INSERT *;
+
+DELETE FROM contatos
+WHERE id IN (SELECT object_id FROM pouso_exclusoes WHERE object_type = 'contact');
+```
+
+## Para todo mundo: conferência semanal
+
+Uma carga completa por semana (ou a comparação das chaves) corrige o que escapou de
+qualquer controle, como uma exclusão com mais de 90 dias. É prática padrão de mercado.
